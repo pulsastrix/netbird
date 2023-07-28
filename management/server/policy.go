@@ -178,6 +178,8 @@ type FirewallRule struct {
 	// PeerIP of the peer
 	PeerIP string
 
+	PeerIP6 string
+
 	// Direction of the traffic
 	Direction int
 
@@ -260,8 +262,14 @@ func (a *Account) connResourcesGenerator() (func(*PolicyRule, []*Peer, int), fun
 					peersExists[peer.ID] = struct{}{}
 				}
 
+				ip6 := ""
+				if peer.IP6 != nil {
+					ip6 = peer.IP6.String()
+				}
+
 				fr := FirewallRule{
 					PeerIP:    peer.IP.String(),
+					PeerIP6:   ip6,
 					Direction: direction,
 					Action:    string(rule.Action),
 					Protocol:  string(rule.Protocol),
@@ -269,6 +277,7 @@ func (a *Account) connResourcesGenerator() (func(*PolicyRule, []*Peer, int), fun
 
 				if isAll {
 					fr.PeerIP = "0.0.0.0"
+					fr.PeerIP6 = "::"
 				}
 
 				ruleID := (rule.ID + fr.PeerIP + strconv.Itoa(direction) +
@@ -452,6 +461,7 @@ func toProtocolFirewallRules(update []*FirewallRule) []*proto.FirewallRule {
 
 		result[i] = &proto.FirewallRule{
 			PeerIP:    update[i].PeerIP,
+			PeerIP6:   update[i].PeerIP6,
 			Direction: direction,
 			Action:    action,
 			Protocol:  protocol,
